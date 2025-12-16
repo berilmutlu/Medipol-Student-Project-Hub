@@ -1,0 +1,39 @@
+# Python / Django
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+ENV/
+.env
+*.log
+db.sqlite3
+*.sqlite3
+local_settings.py
+media/
+staticfiles/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+*.iml
+*.g.dart
+*.freezed.dart
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Secrets
+*.env
+secrets.json
+config.json
