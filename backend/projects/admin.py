@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Project, Milestone, JoinRequest, Feedback
+from .models import Project, Milestone, JoinRequest, Feedback, Task, Meeting
 
 
 class MilestoneInline(admin.TabularInline):
@@ -55,3 +55,39 @@ class FeedbackAdmin(admin.ModelAdmin):
     list_filter = ['created_at']
     search_fields = ['project__title', 'faculty__user__name', 'comments']
     ordering = ['-created_at']
+
+
+@admin.register(Task)
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ['title', 'project', 'status', 'priority', 'assignee', 'due_date', 'created_at']
+    list_filter = ['status', 'priority', 'due_date', 'created_at']
+    search_fields = ['title', 'description', 'project__title', 'assignee__user__name']
+    ordering = ['-created_at']
+    fieldsets = (
+        ('Task Information', {
+            'fields': ('project', 'title', 'description')
+        }),
+        ('Assignment', {
+            'fields': ('assignee', 'status', 'priority', 'due_date')
+        }),
+    )
+
+
+@admin.register(Meeting)
+class MeetingAdmin(admin.ModelAdmin):
+    list_display = ['title', 'project', 'date_time', 'location', 'created_at']
+    list_filter = ['date_time', 'created_at']
+    search_fields = ['title', 'description', 'project__title', 'location']
+    ordering = ['date_time']
+    filter_horizontal = ['participants']
+    fieldsets = (
+        ('Meeting Information', {
+            'fields': ('project', 'title', 'description')
+        }),
+        ('Schedule', {
+            'fields': ('date_time', 'location', 'meeting_link')
+        }),
+        ('Participants', {
+            'fields': ('participants',)
+        }),
+    )

@@ -3,6 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import Student, Faculty
 from .serializers import (
@@ -15,6 +17,41 @@ from .permissions import IsOwnerOrReadOnly, IsStudent, IsFaculty
 User = get_user_model()
 
 
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """Custom login view that returns user data along with tokens"""
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+
+        if response.status_code == 200:
+            # Get user from email
+            email = request.data.get('email')
+            try:
+                user = User.objects.get(email=email)
+                user_data = UserSerializer(user).data
+
+                # Add profile data
+                if user.user_type == 'student':
+                    try:
+                        student_profile = StudentProfileSerializer(user.student_profile).data
+                        user_data['student_profile'] = student_profile
+                    except AttributeError:
+                        pass
+                elif user.user_type == 'faculty':
+                    try:
+                        faculty_profile = FacultyProfileSerializer(user.faculty_profile).data
+                        user_data['faculty_profile'] = faculty_profile
+                    except AttributeError:
+                        pass
+
+                # Add user data to response
+                response.data['user'] = user_data
+            except User.DoesNotExist:
+                pass
+
+        return response
+
+
 class StudentRegistrationView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = StudentRegistrationSerializer
@@ -25,9 +62,19 @@ class StudentRegistrationView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+
+        # Get student profile data
+        student_profile = StudentProfileSerializer(user.student_profile).data
+
         return Response({
-            'message': 'Student registered successfully',
-            'user': UserSerializer(user).data
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': {
+                **UserSerializer(user).data,
+                'student_profile': student_profile
+            }
         }, status=status.HTTP_201_CREATED)
 
 
@@ -41,9 +88,19 @@ class FacultyRegistrationView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+
+        # Get faculty profile data
+        faculty_profile = FacultyProfileSerializer(user.faculty_profile).data
+
         return Response({
-            'message': 'Faculty member registered successfully',
-            'user': UserSerializer(user).data
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': {
+                **UserSerializer(user).data,
+                'faculty_profile': faculty_profile
+            }
         }, status=status.HTTP_201_CREATED)
 
 
@@ -53,6 +110,26 @@ class CurrentUserView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        user_data = UserSerializer(user).data
+
+        # Add profile data based on user type
+        if user.user_type == 'student':
+            try:
+                student_profile = StudentProfileSerializer(user.student_profile).data
+                user_data['student_profile'] = student_profile
+            except AttributeError:
+                pass
+        elif user.user_type == 'faculty':
+            try:
+                faculty_profile = FacultyProfileSerializer(user.faculty_profile).data
+                user_data['faculty_profile'] = faculty_profile
+            except AttributeError:
+                pass
+
+        return Response(user_data)
 
 
 class StudentProfileViewSet(viewsets.ModelViewSet):

@@ -10,6 +10,7 @@ from rest_framework_simplejwt.views import (
 )
 
 from .views import (
+    CustomTokenObtainPairView,
     StudentRegistrationView,
     FacultyRegistrationView,
     CurrentUserView,
@@ -26,7 +27,7 @@ urlpatterns = [
     # Authentication endpoints
     path('register/student/', StudentRegistrationView.as_view(), name='register-student'),
     path('register/faculty/', FacultyRegistrationView.as_view(), name='register-faculty'),
-    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('logout/', TokenBlacklistView.as_view(), name='token_blacklist'),
 

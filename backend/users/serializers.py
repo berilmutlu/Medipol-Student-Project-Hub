@@ -22,7 +22,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         fields = [
-            'user', 'student_id', 'department', 'year', 'skills',
+            'user', 'student_id', 'department', 'faculty', 'year', 'skills', 'interests',
             'email', 'name', 'profile_image'
         ]
         read_only_fields = ['user']
@@ -54,7 +54,8 @@ class FacultyProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Faculty
         fields = [
-            'user', 'faculty_id', 'department', 'title', 'specialization',
+            'user', 'faculty_id', 'department', 'faculty', 'title', 'specialization',
+            'office_location', 'years_of_experience',
             'email', 'name', 'profile_image'
         ]
         read_only_fields = ['user']
@@ -84,14 +85,16 @@ class StudentRegistrationSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True)
     student_id = serializers.CharField(required=True)
     department = serializers.CharField(required=True)
+    faculty = serializers.CharField(required=False, allow_blank=True)
     year = serializers.ChoiceField(choices=Student.YEAR_CHOICES, required=True)
     skills = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+    interests = serializers.ListField(child=serializers.CharField(), required=False, default=list)
 
     class Meta:
         model = User
         fields = [
             'email', 'password', 'password_confirm', 'name', 'profile_image',
-            'student_id', 'department', 'year', 'skills'
+            'student_id', 'department', 'faculty', 'year', 'skills', 'interests'
         ]
 
     def validate(self, attrs):
@@ -108,8 +111,10 @@ class StudentRegistrationSerializer(serializers.ModelSerializer):
         student_data = {
             'student_id': validated_data.pop('student_id'),
             'department': validated_data.pop('department'),
+            'faculty': validated_data.pop('faculty', ''),
             'year': validated_data.pop('year'),
             'skills': validated_data.pop('skills', []),
+            'interests': validated_data.pop('interests', []),
         }
 
         user = User.objects.create_user(
@@ -132,14 +137,18 @@ class FacultyRegistrationSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True)
     faculty_id = serializers.CharField(required=True)
     department = serializers.CharField(required=True)
+    faculty = serializers.CharField(required=False, allow_blank=True)
     title = serializers.CharField(required=False, allow_blank=True)
     specialization = serializers.CharField(required=False, allow_blank=True)
+    office_location = serializers.CharField(required=False, allow_blank=True)
+    years_of_experience = serializers.IntegerField(required=False, default=0)
 
     class Meta:
         model = User
         fields = [
             'email', 'password', 'password_confirm', 'name', 'profile_image',
-            'faculty_id', 'department', 'title', 'specialization'
+            'faculty_id', 'department', 'faculty', 'title', 'specialization',
+            'office_location', 'years_of_experience'
         ]
 
     def validate(self, attrs):
@@ -153,8 +162,11 @@ class FacultyRegistrationSerializer(serializers.ModelSerializer):
         faculty_data = {
             'faculty_id': validated_data.pop('faculty_id'),
             'department': validated_data.pop('department'),
+            'faculty': validated_data.pop('faculty', ''),
             'title': validated_data.pop('title', ''),
             'specialization': validated_data.pop('specialization', ''),
+            'office_location': validated_data.pop('office_location', ''),
+            'years_of_experience': validated_data.pop('years_of_experience', 0),
         }
 
         user = User.objects.create_user(
