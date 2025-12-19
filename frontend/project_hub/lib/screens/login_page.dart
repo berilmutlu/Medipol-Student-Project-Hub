@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'home_page.dart';
+import 'register_chooser_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,7 +16,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _rememberMe = false;
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -32,23 +32,28 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }
 
   Future<void> _handleLogin() async {
-    setState(() => _isLoading = true);
-    
     final userType = _tabController.index == 0 ? 'student' : 'faculty';
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
+
     final success = await authProvider.login(
       _emailController.text,
       _passwordController.text,
       userType,
     );
 
-    setState(() => _isLoading = false);
-
     if (success && mounted) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } else if (mounted && authProvider.error != null) {
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.error!),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
       );
     }
   }
@@ -196,21 +201,48 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         const SizedBox(height: 24),
 
         // Login Button
-        ElevatedButton(
-          onPressed: _isLoading ? null : _handleLogin,
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          child: _isLoading
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        Consumer<AuthProvider>(
+          builder: (context, authProvider, _) {
+            return ElevatedButton(
+              onPressed: authProvider.isLoading ? null : _handleLogin,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: authProvider.isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text('Sign In'),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+
+        // Register Link
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Don't have an account? ",
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RegisterChooserPage(),
                   ),
-                )
-              : const Text('Sign In'),
+                );
+              },
+              child: const Text('Sign Up'),
+            ),
+          ],
         ),
       ],
     );
