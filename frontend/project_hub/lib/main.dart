@@ -44,12 +44,12 @@ class MyApp extends StatelessWidget {
           foregroundColor: Color(0xFF111827),
           elevation: 0,
         ),
-        cardTheme: CardTheme(
+        cardTheme: const CardThemeData(
           color: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(color: Color(0xFFE5E7EB)),
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+            side: BorderSide(color: Color(0xFFE5E7EB)),
           ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(

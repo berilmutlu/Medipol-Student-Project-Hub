@@ -64,6 +64,7 @@ class AuthService {
         data: {
           'email': email,
           'password': password,
+          'password_confirm': password,
           'name': name,
           'student_id': studentId,
           'department': department,
@@ -111,6 +112,7 @@ class AuthService {
         data: {
           'email': email,
           'password': password,
+          'password_confirm': password,
           'name': name,
           'faculty_id': facultyId,
           'department': department,

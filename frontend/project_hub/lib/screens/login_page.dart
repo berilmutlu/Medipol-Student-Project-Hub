@@ -181,19 +181,30 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Checkbox(
-                  value: _rememberMe,
-                  onChanged: (value) {
-                    setState(() => _rememberMe = value ?? false);
-                  },
-                ),
-                const Text('Remember me'),
-              ],
+            Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Checkbox(
+                    value: _rememberMe,
+                    onChanged: (value) {
+                      setState(() => _rememberMe = value ?? false);
+                    },
+                  ),
+                  const Flexible(
+                    child: Text(
+                      'Remember me',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
             TextButton(
               onPressed: () {},
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              ),
               child: const Text('Forgot Password?'),
             ),
           ],
