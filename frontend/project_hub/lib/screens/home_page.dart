@@ -56,10 +56,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         title: const Text('Medipol Project Hub'),
         actions: [
           IconButton(
-            icon: const Icon(LucideIcons.bell),
-            onPressed: () {},
-          ),
-          IconButton(
             icon: const Icon(LucideIcons.messageSquare),
             onPressed: () {
               Navigator.push(

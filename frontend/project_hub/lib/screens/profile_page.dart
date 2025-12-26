@@ -21,12 +21,6 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.settings),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -122,23 +116,6 @@ class ProfilePage extends StatelessWidget {
                       label: Text(skill),
                       backgroundColor: const Color.fromRGBO(14, 165, 233, 0.1),
                       labelStyle: const TextStyle(color: Color(0xFF0EA5E9)),
-                    ))
-                .toList(),
-          ),
-        ],
-      ),
-      const SizedBox(height: 16),
-      _buildInfoCard(
-        context,
-        title: 'Interests',
-        items: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: student.interests
-                .map((interest) => Chip(
-                      label: Text(interest),
-                      backgroundColor: const Color(0xFFF3F4F6),
                     ))
                 .toList(),
           ),

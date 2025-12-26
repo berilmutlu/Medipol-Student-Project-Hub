@@ -179,6 +179,28 @@ class ProjectViewSet(viewsets.ModelViewSet):
             'milestones': MilestoneSerializer(milestones, many=True).data
         })
 
+    @action(detail=False, methods=['get'], url_path='my-projects')
+    def my_projects(self, request):
+        """Get projects owned by the current user"""
+        try:
+            if request.user.user_type == 'student':
+                student = request.user.student_profile
+                queryset = Project.objects.filter(owner=student).select_related(
+                    'owner__user', 'supervisor__user'
+                ).prefetch_related('milestones', 'team__members')
+            elif request.user.user_type == 'faculty':
+                faculty = request.user.faculty_profile
+                queryset = Project.objects.filter(supervisor=faculty).select_related(
+                    'owner__user', 'supervisor__user'
+                ).prefetch_related('milestones', 'team__members')
+            else:
+                queryset = Project.objects.none()
+
+            serializer = ProjectListSerializer(queryset, many=True)
+            return Response(serializer.data)
+        except AttributeError:
+            return Response([], status=status.HTTP_200_OK)
+
 
 class MilestoneViewSet(viewsets.ModelViewSet):
     queryset = Milestone.objects.select_related('project').all()

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../providers/project_provider.dart';
+import '../services/user_service.dart';
 
 class CreateProjectPage extends StatefulWidget {
   const CreateProjectPage({super.key});
@@ -16,12 +17,15 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
   final _descriptionController = TextEditingController();
   final _teamSizeController = TextEditingController();
   final _durationController = TextEditingController();
-  
+  final UserService _userService = UserService();
+
   String? _selectedCategory;
   String? _selectedFaculty;
   String? _selectedSupervisor;
   DateTime? _startDate;
-  
+  List<Map<String, dynamic>> _supervisors = [];
+  bool _loadingSupervisors = false;
+
   final List<String> _roles = [];
   final List<String> _skills = [];
   final _roleController = TextEditingController();
@@ -43,6 +47,25 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
     'Faculty of Law',
     'Faculty of Arts',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSupervisors();
+  }
+
+  Future<void> _loadSupervisors() async {
+    setState(() => _loadingSupervisors = true);
+    try {
+      final faculty = await _userService.getAllFaculty();
+      setState(() {
+        _supervisors = faculty;
+        _loadingSupervisors = false;
+      });
+    } catch (e) {
+      setState(() => _loadingSupervisors = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -236,24 +259,35 @@ class _CreateProjectPageState extends State<CreateProjectPage> {
               // Supervisor
               _buildSectionTitle('Supervisor (Optional)'),
               const SizedBox(height: 16),
-              
+
               DropdownButtonFormField<String>(
                 value: _selectedSupervisor,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Select Supervisor',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  suffixIcon: _loadingSupervisors
+                    ? const Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : null,
                 ),
-                items: const [
-                  DropdownMenuItem(
-                    value: 'Prof. Dr. Michael Roberts',
-                    child: Text('Prof. Dr. Michael Roberts'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Asst. Prof. Dr. John Davis',
-                    child: Text('Asst. Prof. Dr. John Davis'),
-                  ),
-                ],
-                onChanged: (value) {
+                items: _supervisors.map((faculty) {
+                  final id = faculty['id'].toString();
+                  final name = faculty['user']?['name'] ?? faculty['name'] ?? 'Unknown';
+                  final title = faculty['title'] ?? '';
+                  final displayName = title.isNotEmpty ? '$title $name' : name;
+
+                  return DropdownMenuItem(
+                    value: id,
+                    child: Text(displayName),
+                  );
+                }).toList(),
+                onChanged: _loadingSupervisors ? null : (value) {
                   setState(() => _selectedSupervisor = value);
                 },
               ),
